@@ -2,14 +2,14 @@ import json
 import ecdsa
 from flask import Flask, jsonify, request
 from hashlib import sha3_512
-#from Crypto import Random
-#from Crypto.Cipher import AES
+from Crypto import Random
+from Crypto.Cipher import AES
 from base64 import b64encode
 
 HELLOWORLD = b"Karolinko, ty jestes cudowno kobieta!"
 message = HELLOWORLD
-aes_key=HELLOWORLD
-#aes_key = Random.get_random_bytes(AES.key_size[0]) # temp TODO: Marcin Wojtowicz
+#aes_key=HELLOWORLD
+aes_key = Random.get_random_bytes(AES.key_size[0]) # temp TODO: Marcin Wojtowicz
 
 app = Flask(__name__)
 
