@@ -14,7 +14,8 @@ print(type(signature))
 print(type(publicKey.to_string()))
 print(publicKey.verify(signature, message))
 
-# problem z zapisem do stringa
-print(signature.decode('utf-8', 'ignore'))
-print("-------------")
-print(publicKey.to_string().decode('utf-8', 'ignore'))
+# konwersja sygnatury na stringa
+print(signature)                    # sygnatura
+a = signature.decode('latin-1')
+print(bytes(a, 'latin-1'))          # sygnatura ponownie zakodowana (a == signature)
+print(a)                            # sygnatura zdekodowana 
