@@ -19,3 +19,18 @@ print(signature)                    # sygnatura
 a = signature.decode('latin-1')
 print(bytes(a, 'latin-1'))          # sygnatura ponownie zakodowana (a == signature)
 print(a)                            # sygnatura zdekodowana 
+
+print("\n\n")
+# print(publicKey.to_string().hex())
+# print(bytes.fromhex(publicKey.to_string().hex()))
+
+# print(str(publicKey.to_string().hex()))
+# print(hex(publicKey.to_string().hex()))
+
+hex = publicKey.to_string().hex()
+stra = str(hex)
+print(type(hex))
+
+verka = ecdsa.VerifyingKey.from_string(bytes.fromhex(hex), curve=ecdsa.SECP256k1)
+print(publicKey.to_string())
+print(verka.to_string())
