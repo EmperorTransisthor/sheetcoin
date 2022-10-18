@@ -1,3 +1,5 @@
+from flask import jsonify
+
 class Storage:
     storage = {}        # ip+port : publicKey
 
@@ -8,6 +10,16 @@ class Storage:
 
     def get(self, ip, port):
         return self.storage(ip, port)
+
+    def getStorage(self):
+        return self.storage
+
+    # def getStorage_json(self):
+    #     for i in self.storage:
+    #         ip, port = i
+    #         publicKey = self.storage[i]
+            
+            
 
     def print(self):
         for i in self.storage:

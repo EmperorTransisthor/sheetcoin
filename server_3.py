@@ -10,7 +10,7 @@ HELLOWORLD = message
 app = Flask(__name__)
 
 ip = "127.0.0.1"
-_port = "5002"
+_port = "5003"
 
 privateKey = ecdsa.SigningKey.generate(curve=ecdsa.SECP256k1, hashfunc=sha3_512)    # private key
 publicKey = privateKey.get_verifying_key()                                          # public key
@@ -48,18 +48,19 @@ def newRegister():
     allNodes = getAllNodes(storage, ip, _port, publicKey.to_string().hex())     # TODO(Michal Bogon): ip, port and publicKey should members of Node class
     parsedNodes = sendAllNodes(storage.getStorage(), request)
     pushNewNodeToStorage(request, storage)
-    return jsonify({'registered': True}), 200
+    print(parsedNodes)
+    return jsonify({parsedNodes}), 200
 
 # @app.route('registerNetwork', methods=['GET', 'POST'])
 # def registerNetwork():
 
 if __name__ == '__main__':
-    # with app.app_context():
-    #     message = dumps({
-    #         "connect": True,
-    #         "port": str(_port),
-    #         "publicKey": "publicKey.to_string()"
-    #     })
-    #     requests.post("http://127.0.0.1:5001/register", data=message)
+    with app.app_context():
+        message = {
+            "ip": "127.0.0.1",
+            "port": "5003",
+            "publicKey": publicKey.to_string().hex()
+        }
+        requests.post("http://127.0.0.1:5002/new_register", json=message)
+        
     app.run(host=ip, port=_port)
-

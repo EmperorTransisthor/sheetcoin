@@ -3,7 +3,7 @@ import requests
 from storage import Storage
 from hashlib import sha3_512
 from flask import Flask, jsonify, request
-from json import dumps
+from serverUtils import *
 
 message = b"Hello World"
 HELLOWORLD = message
@@ -39,20 +39,28 @@ def index():
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
-    remoteIp = request.remote_addr
-    remotePort = request.get_json()['port']
-    remotePublicKey = request.get_json()['publicKey']
-    storage.push(remoteIp, remotePort, remotePublicKey)
-    print("Succesfully registered " + str(remoteIp) + ":" + str(remotePort))
+    pushNewNodeToStorage(request, storage)
     return jsonify({'registered': True}), 200
+
+@app.route('/new_register', methods=['GET', 'POST'])
+def newRegister():
+    informAllNodesAboutNewNode(request, storage.getStorage())
+    allNodes = getAllNodes(storage, ip, _port, publicKey.to_string().hex())     # TODO(Michal Bogon): ip, port and publicKey should members of Node class
+    parsedNodes = sendAllNodes(storage.getStorage(), request)
+    pushNewNodeToStorage(request, storage)
+    print(parsedNodes)
+    return jsonify({parsedNodes}), 200
+
+# @app.route('registerNetwork', methods=['GET', 'POST'])
+# def registerNetwork():
 
 if __name__ == '__main__':
     with app.app_context():
         message = {
-            "connect": True,
-            "port": "5005",
+            "ip": "127.0.0.1",
+            "port": "5001",
             "publicKey": publicKey.to_string().hex()
         }
-        requests.post("http://127.0.0.1:5002/", json=message)
+        requests.post("http://127.0.0.1:5002/new_register", json=message)
         
     app.run(host=ip, port=_port)
