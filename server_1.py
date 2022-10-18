@@ -76,12 +76,12 @@ def false_message():
     return jsonify({'verifiedSignature': False}), 200
 
 if __name__ == '__main__':
-    with app.app_context():
-        message = {
-            "ip": "127.0.0.1",
-            "port": "5001",
-            "publicKey": publicKey.to_string().hex()
-        }
-        requests.post("http://127.0.0.1:5002/new_register", json=message)
+    # with app.app_context():
+    #     message = {
+    #         "ip": "127.0.0.1",
+    #         "port": "5001",
+    #         "publicKey": publicKey.to_string().hex()
+    #     }
+    #     requests.post("http://127.0.0.1:5002/new_register", json=message)
         
     app.run(host=ip, port=_port)

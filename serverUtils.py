@@ -61,6 +61,7 @@ def signatureVerification(request, storage):
     print(remotePublicKey)
     publicKey = ecdsa.VerifyingKey.from_string(bytes.fromhex(remotePublicKey), curve=ecdsa.SECP256k1)
 
+    print(publicKey.to_string())
     byteSignature = bytes.fromhex(signature)
     byteMessage = bytes(message, 'utf-8')
     return publicKey.verify(byteSignature, byteMessage)

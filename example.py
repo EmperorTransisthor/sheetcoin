@@ -60,13 +60,15 @@ print(verka.to_string())
 # print(publicKey.to_string())
 # print(verka.to_string())
 
-msg = b"12345"
+msg = "12345"
 privK = ecdsa.SigningKey.generate(curve=ecdsa.SECP256k1)
 pubK = privK.get_verifying_key().to_string().hex()
 
-sigma = privK.sign(msg).hex()
+sigma = privK.sign(bytes(msg, 'utf-8')).hex()
 
 verK = ecdsa.VerifyingKey.from_string(bytes.fromhex(pubK), curve=ecdsa.SECP256k1)
-print(verK.verify(bytes.fromhex(sigma), msg))
-
+print("-------")
+print(pubK)
+print(privK.get_verifying_key().to_string())
+print(sigma)
 
