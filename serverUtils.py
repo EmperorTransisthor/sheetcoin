@@ -3,6 +3,7 @@ import json
 from requests import post
 from flask import jsonify, make_response
 from time import sleep
+import ecdsa
 
 
 def pushNewNodeToStorage(request, storage):
@@ -19,7 +20,7 @@ def getAllNodes(storage, ip, port, publicKey):
     return nodes
 
 def sendAllNodes(storage, request):
-    sleep(3)
+    sleep(5)
     print("sending all nodes")
     remoteIp = request.get_json()['ip']
     remotePort = request.get_json()['port']
@@ -50,3 +51,16 @@ def informAllNodesAboutNewNode(request, storage):
             url = "http://" + str(ip) + ":" + str(port) + "/register"
             print(url)
             post(url, json = message)
+
+def signatureVerification(request, storage):
+    remoteIp = request.remote_addr
+    remotePort = request.get_json()['port']
+    message = request.get_json()['message']
+    signature = request.get_json()['signature']
+    remotePublicKey = storage[(remoteIp, remotePort)]
+    print(remotePublicKey)
+    publicKey = ecdsa.VerifyingKey.from_string(bytes.fromhex(remotePublicKey), curve=ecdsa.SECP256k1)
+
+    byteSignature = bytes.fromhex(signature)
+    byteMessage = bytes(message, 'utf-8')
+    return publicKey.verify(byteSignature, byteMessage)

@@ -54,6 +54,27 @@ def newRegister():
 # @app.route('registerNetwork', methods=['GET', 'POST'])
 # def registerNetwork():
 
+@app.route('/message', methods=['GET', 'POST'])
+def message():
+    if signatureVerification(request, storage.getStorage()):
+        return jsonify({'verifiedSignature': True}), 200
+    
+    return jsonify({'verifiedSignature': False}), 200
+
+@app.route('/send_message', methods=['GET', 'POST'])
+def send_message():
+    if signatureVerification(request, storage):
+        return jsonify({'verifiedSignature': True}), 200
+    
+    return jsonify({'verifiedSignature': False}), 200
+
+@app.route('/false_message', methods=['GET', 'POST'])
+def false_message():
+    if signatureVerification(request, storage):
+        return jsonify({'verifiedSignature': True}), 200
+    
+    return jsonify({'verifiedSignature': False}), 200
+
 if __name__ == '__main__':
     with app.app_context():
         message = {
