@@ -1,5 +1,6 @@
 import ecdsa
 import requests
+import threading
 from storage import Storage
 from hashlib import sha3_512
 from flask import Flask, jsonify, request
@@ -57,6 +58,7 @@ def newRegister():
 @app.route('/message', methods=['GET', 'POST'])
 def message():
     if signatureVerification(request, storage.getStorage()):
+        print("Signature verified!")
         return jsonify({'verifiedSignature': True}), 200
     
     return jsonify({'verifiedSignature': False}), 200

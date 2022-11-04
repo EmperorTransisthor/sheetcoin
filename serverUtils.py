@@ -3,6 +3,7 @@ import json
 from requests import post
 from flask import jsonify, make_response
 from time import sleep
+from hashlib import sha3_512
 import ecdsa
 
 
@@ -52,16 +53,24 @@ def informAllNodesAboutNewNode(request, storage):
             print(url)
             post(url, json = message)
 
+def send(ip, port, privateKey, payload):
+    message = {
+            "ip": ip,
+            "port": port,
+            "message": payload,
+            "signature": privateKey.sign(bytes(payload, 'utf-8')).hex()
+    }
+    url = "http://" + str(ip) + ":" + str(port) + "/message"
+    post(url, json=message)
+
 def signatureVerification(request, storage):
     remoteIp = request.remote_addr
     remotePort = request.get_json()['port']
     message = request.get_json()['message']
     signature = request.get_json()['signature']
     remotePublicKey = storage[(remoteIp, remotePort)]
-    print(remotePublicKey)
-    publicKey = ecdsa.VerifyingKey.from_string(bytes.fromhex(remotePublicKey), curve=ecdsa.SECP256k1)
+    publicKey = ecdsa.VerifyingKey.from_string(bytes.fromhex(remotePublicKey), curve=ecdsa.SECP256k1, hashfunc=sha3_512)
 
-    print(publicKey.to_string())
     byteSignature = bytes.fromhex(signature)
     byteMessage = bytes(message, 'utf-8')
     return publicKey.verify(byteSignature, byteMessage)
