@@ -63,6 +63,21 @@ def send(ip, port, privateKey, payload):
     url = "http://" + str(ip) + ":" + str(port) + "/message"
     post(url, json=message)
 
+def client(ip, port, privateKey, targetIp, targetPort):
+    sleep(2)
+    registerMessage = {
+                "ip": ip,
+                "port": port,
+                "publicKey": privateKey.get_verifying_key().to_string().hex()
+            }
+    url = "http://" + str(targetIp) + ":" + str(targetPort) + "/new_register"
+    post(url, json=registerMessage)
+
+    # while True:
+        # payload = input()
+        # send(targetIp)
+
+
 def signatureVerification(request, storage):
     remoteIp = request.remote_addr
     remotePort = request.get_json()['port']
