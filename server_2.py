@@ -48,21 +48,28 @@ def newRegister():
 @app.route('/message', methods=['GET', 'POST'])
 def message():
     if signatureVerification(request, storage.getStorage()):
+        print("Received message from " + formatSenderAddress(request))
+        print("Message: " + request.get_json()['message'])
+        return jsonify({'verifiedSignature': True}), 200
+    
+    return jsonify({'verifiedSignature': False}), 200
+
+@app.route('/message_all', methods=['GET', 'POST'])
+def message_all():
+    if signatureVerification(request, storage.getStorage()):
+        messageAll(request, storage)
+        print("Received message from " + formatSenderAddress(request))
+        print("Message: " + request.get_json()['message'])
+        return jsonify({'verifiedSignature': True}), 200
+    
+    return jsonify({'verifiedSignature': False}), 200
+
+@app.route('/receive_from', methods=['GET', 'POST'])
+def receive_from():
+    if signatureVerificationProxy(request, storage.getStorage()):
         print("Signature verified!")
-        return jsonify({'verifiedSignature': True}), 200
-    
-    return jsonify({'verifiedSignature': False}), 200
-
-@app.route('/send_message', methods=['GET', 'POST'])
-def send_message():
-    if signatureVerification(request, storage):
-        return jsonify({'verifiedSignature': True}), 200
-    
-    return jsonify({'verifiedSignature': False}), 200
-
-@app.route('/false_message', methods=['GET', 'POST'])
-def false_message():
-    if signatureVerification(request, storage):
+        print("Received message from " + formatSenderAddress(request))
+        print("Message: " + request.get_json()['message'])
         return jsonify({'verifiedSignature': True}), 200
     
     return jsonify({'verifiedSignature': False}), 200

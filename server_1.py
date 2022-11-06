@@ -3,6 +3,7 @@ import requests
 from threading import Thread
 from storage import Storage
 from hashlib import sha3_512
+from node import Node
 from flask import Flask, jsonify, request
 from serverUtils import *
 
@@ -35,7 +36,7 @@ def register():
     return jsonify({'registered': True}), 200
 
 @app.route('/new_register', methods=['GET', 'POST'])
-def newRegister():
+def newRegister():        
     informAllNodesAboutNewNode(request, storage.getStorage())
     allNodes = getAllNodes(storage, ip, _port, publicKey.to_string().hex())     # TODO(Michal Bogon): ip, port and publicKey should members of Node class
     sendAllNodes(allNodes, request)
@@ -45,21 +46,28 @@ def newRegister():
 @app.route('/message', methods=['GET', 'POST'])
 def message():
     if signatureVerification(request, storage.getStorage()):
+        print("Received message from " + formatSenderAddress(request))
+        print("Message: " + request.get_json()['message'])
+        return jsonify({'verifiedSignature': True}), 200
+    
+    return jsonify({'verifiedSignature': False}), 200
+
+@app.route('/message_all', methods=['GET', 'POST'])
+def message_all():
+    if signatureVerification(request, storage.getStorage()):
+        messageAll(request, storage)
+        print("Received message from " + formatSenderAddress(request))
+        print("Message: " + request.get_json()['message'])
+        return jsonify({'verifiedSignature': True}), 200
+    
+    return jsonify({'verifiedSignature': False}), 200
+
+@app.route('/receive_from', methods=['GET', 'POST'])
+def receive_from():
+    if signatureVerificationProxy(request, storage.getStorage()):
         print("Signature verified!")
-        return jsonify({'verifiedSignature': True}), 200
-    
-    return jsonify({'verifiedSignature': False}), 200
-
-@app.route('/send_message', methods=['GET', 'POST'])
-def send_message():
-    if signatureVerification(request, storage):
-        return jsonify({'verifiedSignature': True}), 200
-    
-    return jsonify({'verifiedSignature': False}), 200
-
-@app.route('/false_message', methods=['GET', 'POST'])
-def false_message():
-    if signatureVerification(request, storage):
+        print("Received message from " + formatSenderAddress(request))
+        print("Message: " + request.get_json()['message'])
         return jsonify({'verifiedSignature': True}), 200
     
     return jsonify({'verifiedSignature': False}), 200
