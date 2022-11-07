@@ -151,7 +151,13 @@ def signatureVerification(request, storageValue):
 
     byteSignature = bytes.fromhex(signature)
     byteMessage = bytes(message, 'utf-8')
-    return publicKey.verify(byteSignature, byteMessage)
+
+    try:
+        publicKey.verify(byteSignature, byteMessage)
+        return True
+
+    except:
+        return False
 
 def signatureVerificationProxy(request, storageValue):
     """ Verifies proxy sender signature with its publicKey in storage.
@@ -170,7 +176,13 @@ def signatureVerificationProxy(request, storageValue):
 
     byteSignature = bytes.fromhex(signature)
     byteMessage = bytes(message, 'utf-8')
-    return publicKey.verify(byteSignature, byteMessage)
+    
+    try:
+        publicKey.verify(byteSignature, byteMessage)
+        return True
+
+    except:
+        return False
 
 def formatSenderAddress(request):
     """ Formats sender url address form request.
