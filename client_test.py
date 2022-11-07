@@ -1,7 +1,7 @@
 import requests
 import ecdsa
 from hashlib import sha3_512
-from serverUtils import send, send_all
+from clientUtils import send, send_all
 
 payload = "Hello World"
 privateKey = ecdsa.SigningKey.generate(curve=ecdsa.SECP256k1, hashfunc=sha3_512)    # private key

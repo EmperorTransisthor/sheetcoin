@@ -38,7 +38,6 @@ def sendAllNodes(storage, request):
         post(url, json=message)
 
 def messageAll(request, storage):
-    # for i in storage, send payload to all + endpoint receive_from
     targetIp = request.get_json()['ip']
     targetPort = request.get_json()['port']
     targetNodes = {}
@@ -72,27 +71,6 @@ def informAllNodesAboutNewNode(request, storageValue):
             print(url)
             post(url, json = message)
 
-def send(ip, port, privateKey, payload):
-    message = {
-            "ip": ip,
-            "port": port,
-            "message": payload,
-            "signature": privateKey.sign(bytes(payload, 'utf-8')).hex()
-    }
-    url = "http://" + str(ip) + ":" + str(port) + "/message"
-    post(url, json=message)
-
-def send_all(ip, port, privateKey, payload):
-    message = {
-            "ip": ip,
-            "port": port,
-            "message": payload,
-            "signature": privateKey.sign(bytes(payload, 'utf-8')).hex()
-    }
-    url = "http://" + str(ip) + ":" + str(port) + "/message_all"
-    response = post(url, json=message)
-    # print(response.content.decode('utf-8'))
-
 def client(ip, port, privateKey, targetIp, targetPort):
     sleep(1)
     registerMessage = {
@@ -106,7 +84,6 @@ def client(ip, port, privateKey, targetIp, targetPort):
     # while True:                   # if 
     #     payload = input()
     #     send(targetIp, targetPort, privateKey, payload)
-
 
 def signatureVerification(request, storageValue):
     remoteIp = request.remote_addr
