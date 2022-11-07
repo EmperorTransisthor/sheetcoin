@@ -18,18 +18,28 @@ publicKey = privateKey.get_verifying_key()                                      
 signature = privateKey.sign(message)
 storage = Storage()
 
+
 @app.route('/', methods=['GET', 'POST'])
 def index():
+    """ Prints storage contents.
+    """
+
     storage.print()
     return jsonify({"Print": True}), 200
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
+    """ Registers new node with credentials specified in request.
+    """
+
     pushNewNodeToStorage(request, storage)
     return jsonify({'registered': True}), 200
 
 @app.route('/new_register', methods=['GET', 'POST'])
-def newRegister():        
+def newRegister():
+    """ Registers new node with credentials specified in request and informs all nodes in network about new node.
+    """
+
     informAllNodesAboutNewNode(request, storage.getStorage())
     allNodes = getAllNodes(storage, ip, _port, publicKey.to_string().hex())     # TODO(Michal Bogon): ip, port and publicKey should members of Node class
     sendAllNodes(allNodes, request)
@@ -38,6 +48,9 @@ def newRegister():
 
 @app.route('/message', methods=['GET', 'POST'])
 def message():
+    """ Checks sender signature and prints message if signature is valid
+    """
+
     if signatureVerification(request, storage.getStorage()):
         print("Received message from " + formatSenderAddress(request))
         print("Message: " + request.get_json()['message'])
@@ -47,6 +60,9 @@ def message():
 
 @app.route('/message_all', methods=['GET', 'POST'])
 def message_all():
+    """ Checks sender signature, prints message if signature is valid and spreads out message to other nodes in network.
+    """
+
     if signatureVerification(request, storage.getStorage()):
         messageAll(request, storage)
         print("Received message from " + formatSenderAddress(request))
@@ -57,6 +73,9 @@ def message_all():
 
 @app.route('/receive_from', methods=['GET', 'POST'])
 def receive_from():
+    """ Checks proxy sender signature and prints message if signature is valid.
+    """
+
     if signatureVerificationProxy(request, storage.getStorage()):
         print("Signature verified!")
         print("Received message from " + formatSenderAddress(request))
