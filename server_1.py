@@ -1,5 +1,4 @@
 import ecdsa
-import requests
 from threading import Thread
 from storage import Storage
 from hashlib import sha3_512
@@ -21,14 +20,8 @@ storage = Storage()
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
-    print("Connection from " + str(request.remote_addr))
-    remoteIp = request.remote_addr
-    remotePort = request.get_json()['port']
-    remotePublicKey = request.get_json()['publicKey']
-    storage.push(remoteIp, remotePort, remotePublicKey)
-    print("Sucess? : ")
     storage.print()
-    return jsonify({'you sent' : HELLOWORLD}), 201
+    return jsonify({"Print": True}), 200
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():

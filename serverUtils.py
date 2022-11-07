@@ -21,7 +21,7 @@ def getAllNodes(storage, ip, port, publicKey):
     return nodes
 
 def sendAllNodes(storage, request):
-    sleep(5)
+    sleep(2)
     print("sending all nodes")
     remoteIp = request.get_json()['ip']
     remotePort = request.get_json()['port']
@@ -90,10 +90,11 @@ def send_all(ip, port, privateKey, payload):
             "signature": privateKey.sign(bytes(payload, 'utf-8')).hex()
     }
     url = "http://" + str(ip) + ":" + str(port) + "/message_all"
-    post(url, json=message)
+    response = post(url, json=message)
+    # print(response.content.decode('utf-8'))
 
 def client(ip, port, privateKey, targetIp, targetPort):
-    sleep(2)
+    sleep(1)
     registerMessage = {
                 "ip": ip,
                 "port": port,

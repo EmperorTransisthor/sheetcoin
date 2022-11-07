@@ -22,5 +22,8 @@ requests.post("http://127.0.0.1:5001/new_register", json=message)
 input("Press enter to send message...")
 send(ip, port, privateKey, payload)
 
-input("Press enter to semd message to all...")
+input("Press enter to send message to all...")
 send_all(ip, port, privateKey, payload)
+
+input("Press enter to show all nodes...")
+requests.post("http://127.0.0.1:5001/", json=message)

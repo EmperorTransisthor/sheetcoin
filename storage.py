@@ -14,12 +14,15 @@ class Storage:
     def getStorage(self):
         return self.storage
 
-    # def getStorage_json(self):
-    #     for i in self.storage:
-    #         ip, port = i
-    #         publicKey = self.storage[i]
-            
-            
+    def getStorage_json(self):
+        storedNodes = {}
+        for i in self.storage:
+            ip, port = i
+            url = str(ip) + ":" + str(port)
+            publicKey = self.storage[i]
+            storedNodes.update[url] = publicKey
+        
+        return storedNodes
 
     def print(self):
         for i in self.storage:
