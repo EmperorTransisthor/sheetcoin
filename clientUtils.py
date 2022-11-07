@@ -1,6 +1,15 @@
 from requests import post
 
 def send(ip, port, privateKey, payload):
+    """ Sends message to specified node.
+
+    Args:
+        `ip` -> `String`: target IP
+        `port` -> `String`: target port
+        `privateKey` -> `ecdsa.SigningKey`: host private key
+        `payload` -> `String`: content of the message
+    """
+
     message = {
             "ip": ip,
             "port": port,
@@ -11,6 +20,15 @@ def send(ip, port, privateKey, payload):
     post(url, json=message)
 
 def send_all(ip, port, privateKey, payload):
+    """ Sends message to specified node and orders it to send message to whole network.
+
+    Args:
+        `ip` -> `String`: target IP
+        `port` -> `String`: target port
+        `privateKey` -> `ecdsa.SigningKey`: host private key
+        `payload` -> `String`: content of the message
+    """
+
     message = {
             "ip": ip,
             "port": port,
