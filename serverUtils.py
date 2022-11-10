@@ -1,10 +1,9 @@
-
-import json
+import ecdsa
+import sys
+import getopt
 from requests import post
-from flask import jsonify, make_response
 from time import sleep
 from hashlib import sha3_512
-import ecdsa
 
 
 def pushNewNodeToStorage(request, storage):
@@ -83,7 +82,7 @@ def messageAll(request, storage):
             "message": request.get_json()['message'],
             "signature": request.get_json()['signature']
         }
-        url = "http://" + str(ip) + ":" + str(port) + "/receive_from"
+        url = "http://" + formatUrl(ip, port) + "/receive_from"
         print(url)
         post(url, json = message)
 
@@ -106,7 +105,7 @@ def informAllNodesAboutNewNode(request, storageValue):
     
     for i in storageValue:
             ip, port = i
-            url = "http://" + str(ip) + ":" + str(port) + "/register"
+            url = "http://" + formatUrl(ip, port) + "/register"
             print(url)
             post(url, json = message)
 
@@ -122,12 +121,13 @@ def client(ip, port, privateKey, targetIp, targetPort):
     """
 
     sleep(1)
+    print("Requesting " + formatUrl(targetIp, targetPort) + " for nodes info...")
     registerMessage = {
                 "ip": ip,
                 "port": port,
                 "publicKey": privateKey.get_verifying_key().to_string().hex()
             }
-    url = "http://" + str(targetIp) + ":" + str(targetPort) + "/new_register"
+    url = "http://" + formatUrl(targetIp, targetPort) + "/new_register"
     post(url, json=registerMessage)
 
     # while True:                   # if 
@@ -194,7 +194,20 @@ def formatSenderAddress(request):
         Formatted String in form of 'IP:port' .
     """
 
-    return "\'" + str(request.get_json()['ip']) + ":" + str(request.get_json()['port'])
+    return "\'" + str(request.get_json()['ip']) + ":" + str(request.get_json()['port']) + "\'"
+
+def formatUrl(ip, port):
+    """ Formats url
+    
+    Args:
+        `ip` -> `String`: ip address
+        `port` -> `String`: port
+
+    Returns:
+        Formatted `String` in form of <ip>:<port>
+    """
+
+    return str(ip) + ":" + str(port)
 
 def isSenderHost(request, ip, port):
     """ Verifies, if sender is host.
@@ -208,3 +221,48 @@ def isSenderHost(request, ip, port):
         Result of remoteIp == hostIp && remotePort == hostPort
     """
     return request.get_json()['ip'] == ip and request.get_json()['port'] == port
+
+def readNodeSettings(argv):
+    """ Reads arguments passed to script.
+
+    Args:
+        `argv` -> `sys.argv[]`: array of passed arguments to script
+
+    Returns:
+        A `tuple` of `String` values: 
+            host ip,
+            host port,
+            remote ip,
+            remote port
+    """
+    ip = ""
+    port = ""
+    remoteIp = ""
+    remotePort = ""
+    argHelp = "{0} -a <ip> -p <port> -r <remote_ip> -o <remote_port>".format(argv[0])
+
+    try:
+        opts, args = getopt.getopt(argv[1:], "ha:p:r:o:", ["help", "ip", "port", "remote_ip", "remote_port"])
+    except:
+        print(argHelp)
+        sys.exit(2)
+
+    for opt, arg in opts:
+        if opt in ("-h", "--help"):
+            print(argHelp)
+            sys.exit(2)
+        elif opt in ("-a", "--ip"):
+            ip = arg
+        elif opt in ("-p", "--port"):
+            port = arg
+        elif opt in ("-r", "--remote_ip"):
+            remoteIp = arg
+        elif opt in ("-o", "--remote_port"):
+            remotePort = arg
+
+    if remoteIp ^ remotePort:
+        print("Invalid remote input. You must fill both remoteIp and remotePort")
+        print(argHelp)
+        sys.exit(2)
+
+    return ip, port, remoteIp, remotePort
