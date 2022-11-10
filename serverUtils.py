@@ -260,7 +260,7 @@ def readNodeSettings(argv):
         elif opt in ("-o", "--remote_port"):
             remotePort = arg
 
-    if remoteIp ^ remotePort:
+    if bool(remoteIp) ^ bool(remotePort):
         print("Invalid remote input. You must fill both remoteIp and remotePort")
         print(argHelp)
         sys.exit(2)
