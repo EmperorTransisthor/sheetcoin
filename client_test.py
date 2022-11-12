@@ -9,12 +9,12 @@ publicKey = privateKey.get_verifying_key()                                      
 signature = privateKey.sign(bytes(payload, 'utf-8'))
 
 ip = "127.0.0.1"
-port = "5001"
+port = "5004"
 
 print("Registering!")
 message = {
             "ip": "127.0.0.1",
-            "port": "5001",
+            "port": "5002",
             "publicKey": str(publicKey.to_string().hex())
           }
 requests.post("http://127.0.0.1:5001/new_register", json=message)
