@@ -3,7 +3,6 @@ import sys
 from threading import Thread
 from storage import Storage
 from hashlib import sha3_512
-from node import Node
 from flask import Flask, jsonify, request
 from serverUtils import *
 
