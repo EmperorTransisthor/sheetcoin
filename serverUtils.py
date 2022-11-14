@@ -4,7 +4,11 @@ import getopt
 from requests import post
 from time import sleep
 from hashlib import sha3_512
+from hashlib import sha256
+from time import time
 
+
+PREFIX_ZEROS = '0000'
 
 def pushNewNodeToStorage(request, storage):
     """ Add new node IP, port and publicKey to storage.
@@ -79,10 +83,123 @@ def messageAll(request, storage):
         message = {
             "ip": targetIp,
             "port": targetPort,
-            "message": request.get_json()['message'],
+            "payload": request.get_json()['payload'],
             "signature": request.get_json()['signature']
         }
         url = "http://" + formatUrl(ip, port) + "/receive_from"
+        print(url)
+        post(url, json = message)
+
+def sendMineCommandToAll(request, storage):
+    """ Spread out received message to all nodes in the network.
+
+    Args:
+        `request` -> `flask.request`: request received.
+        `storage` -> `Storage`: storage with nodes.
+    """
+    targetIp = request.get_json()['ip']
+    targetPort = request.get_json()['port']
+    targetNodes = {}
+    targetNodes.update(storage.getStorage())
+    targetNodes.pop((targetIp, targetPort))
+    for i in targetNodes:
+        ip, port = i
+        message = {
+            "ip": targetIp,
+            "port": targetPort,
+            "payload": request.get_json()["payload"],
+            "signature": request.get_json()['signature']
+        }
+        url = "http://" + formatUrl(ip, port) + "/receive_mine"
+        print(url)
+        post(url, json = message)
+
+def proofOfWork(blockchain, listOfTransactions):
+    nonce = 0
+    hash_result = ''
+    # difficulty from 0 to 24 bits
+    # for difficulty_bits in range(24):
+        # difficulty = 2 ** difficulty_bits
+        # print(f'Difficulty: {difficulty} ({difficulty_bits})')
+
+    
+    print('Starting search...')
+    # checkpoint the current time
+    start_time = time()
+    # make a new block which includes the hash from the previous block
+    blockchain.createBlock(listOfTransactions, blockchain.print_previous_block()['previousHash'])
+
+    # find a valid nonce for the new block
+    (hash_result, nonce) = findHashNonce(listOfTransactions, blockchain.print_previous_block()['previousHash'], blockchain.print_previous_block()['blockIndex'])
+
+    # checkpoint how long it took to find a result
+    end_time = time()
+    elapsed_time = end_time - start_time
+    print('Elapsed Time: %.4f seconds' % elapsed_time)
+    if elapsed_time > 0:
+        # estimate the hashes per second
+        hash_power = float(nonce / elapsed_time)
+        print('Hashing Power: %ld hashes per second' % hash_power)
+
+    #return results to validate in other nodes
+    return nonce, hash_result
+
+def findHashNonce(listOfTransactions, previousHash, blockIndex):
+    #  here we set how long it can search nonce
+    max_nonce = 2 ** 32
+    for nonce in range(max_nonce):
+        hash_result = sha256(str(listOfTransactions).encode('utf-8') + str(blockIndex).encode('utf-8') + str(nonce).encode('utf-8') + str(previousHash).encode('utf-8')).hexdigest()
+        # check if this is a valid result, hash has to start with 4 zeros
+        if hash_result.startswith(PREFIX_ZEROS): 
+            print(f"Success with nonce {nonce}")
+            print(f'Hash is {hash_result}')
+            return (hash_result,nonce)
+    print(f'Failed after {nonce} tries')
+    return nonce    
+
+def validation(nonce, hashToValidate, blockchain):
+    # previous_block = blockchain.chain[0]
+    previous_block = blockchain.print_previous_block()
+    print(blockchain)
+    # block_index = 1
+    
+    # while block_index < len(blockchain.chain):
+    #     block = blockchain.chain[block_index]
+    #     if block['previousHash'] != blockchain.hash(previous_block):
+    #         return False
+
+    #     previous_block = block
+    #     block_index += 1
+
+    if hashToValidate != sha256(str(previous_block["listOfTransactions"]).encode('utf-8') + str(previous_block["blockIndex"]).encode('utf-8') + str(nonce).encode('utf-8') + str(previous_block["previousHash"]).encode('utf-8')).hexdigest():
+        return False
+    return True
+    
+    
+
+def validateToAll(request, storage, nonce, hashToValiate):
+    """ Spread out received message to all nodes in the network.
+
+    Args:
+        `request` -> `flask.request`: request received.
+        `storage` -> `Storage`: storage with nodes.
+    """
+    targetIp = request.get_json()['ip']
+    targetPort = request.get_json()['port']
+    targetNodes = {}
+    targetNodes.update(storage.getStorage())
+    targetNodes.pop((targetIp, targetPort))
+    for i in targetNodes:
+        ip, port = i
+        message = {
+            "ip": targetIp,
+            "port": targetPort,
+            "payload": request.get_json()["payload"],
+            "nonce": nonce,
+            "hashToValiate": hashToValiate,
+            "signature": request.get_json()['signature']
+        }
+        url = "http://" + formatUrl(ip, port) + "/validateNonce"
         print(url)
         post(url, json = message)
 
@@ -144,13 +261,13 @@ def signatureVerification(request, storageValue):
 
     remoteIp = request.remote_addr
     remotePort = request.get_json()['port']
-    message = request.get_json()['message']
+    message = request.get_json()['payload']
     signature = request.get_json()['signature']
     remotePublicKey = storageValue[(remoteIp, remotePort)]
     publicKey = ecdsa.VerifyingKey.from_string(bytes.fromhex(remotePublicKey), curve=ecdsa.SECP256k1, hashfunc=sha3_512)
 
     byteSignature = bytes.fromhex(signature)
-    byteMessage = bytes(message, 'utf-8')
+    byteMessage = bytes(str(message), 'utf-8')
 
     try:
         publicKey.verify(byteSignature, byteMessage)
@@ -169,7 +286,7 @@ def signatureVerificationProxy(request, storageValue):
 
     remoteIp = request.get_json()['ip']
     remotePort = request.get_json()['port']
-    message = request.get_json()['message']
+    message = request.get_json()['payload']
     signature = request.get_json()['signature']
     remotePublicKey = storageValue[(remoteIp, remotePort)]
     publicKey = ecdsa.VerifyingKey.from_string(bytes.fromhex(remotePublicKey), curve=ecdsa.SECP256k1, hashfunc=sha3_512)

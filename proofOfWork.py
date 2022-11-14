@@ -38,6 +38,7 @@ class Blockchain:
 
             self.block_data="-".join(transaction_list)+"-"+previous_block_hash
             self.block_hash=hashlib.sha256(self.block_data.encode()).hexdigest()
+            
 def CheckTheNode(hashedheader):
     # Check the node and add to blockchain (USECASE 1)
     if int(hashedheader, 16) < 2 ** (256-diff):

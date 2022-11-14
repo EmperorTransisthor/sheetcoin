@@ -1,10 +1,12 @@
 import ecdsa
 import sys
-from threading import Thread
+from concurrent.futures import ThreadPoolExecutor
 from storage import Storage
 from hashlib import sha3_512
 from flask import Flask, jsonify, request
 from serverUtils import *
+from Blockchain import Blockchain
+from threading import Thread
 
 message = b"Hello World"
 HELLOWORLD = "Hello World"
@@ -14,7 +16,10 @@ privateKey = ecdsa.SigningKey.generate(curve=ecdsa.SECP256k1, hashfunc=sha3_512)
 publicKey = privateKey.get_verifying_key()                                          # public key
 signature = privateKey.sign(message)
 storage = Storage()
+blockchain = Blockchain()
 
+# proofOfWorkThread = Thread(target = proofOfWork, args = (blockchain))
+executor = ThreadPoolExecutor(1)
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
@@ -50,7 +55,7 @@ def message():
 
     if signatureVerification(request, storage.getStorage()):
         print("Received message from " + formatSenderAddress(request))
-        print("Message: " + request.get_json()['message'])
+        print("Message: " + request.get_json()['payload'])
         return jsonify({'verifiedSignature': True}), 200
     
     return jsonify({'verifiedSignature': False}), 200
@@ -63,7 +68,7 @@ def message_all():
     if signatureVerification(request, storage.getStorage()):
         messageAll(request, storage)
         print("Received message from " + formatSenderAddress(request))
-        print("Message: " + request.get_json()['message'])
+        print("Message: " + request.get_json()['payload'])
         return jsonify({'verifiedSignature': True}), 200
     
     return jsonify({'verifiedSignature': False}), 200
@@ -76,7 +81,62 @@ def receive_from():
     if signatureVerificationProxy(request, storage.getStorage()):
         print("Signature verified!")
         print("Received message from " + formatSenderAddress(request))
-        print("Message: " + request.get_json()['message'])
+        print("Message: " + request.get_json()['payload'])
+        return jsonify({'verifiedSignature': True}), 200
+    
+    return jsonify({'verifiedSignature': False}), 200
+
+
+@app.route('/mine', methods=['GET', 'POST'])
+def mine():
+    """ Checks sender signature, prints message if signature is valid and spreads out message to other nodes in network.
+    """
+
+    if signatureVerification(request, storage.getStorage()):
+        sendMineCommandToAll(request, storage)
+        print("Received mining command from " + formatSenderAddress(request))
+        # print("Data: " + str(request.get_json()['payload']))
+        # start proof_of work - serching for candidate block
+        future = executor.submit(proofOfWork, blockchain, request.get_json()['payload'],)
+        resultNonce, resultHash = future.result()
+        print("Nonce acquired: " + str(resultNonce))
+        print("Hash: " + str(resultHash))
+        validateToAll(request, storage, resultNonce, resultHash)
+        return jsonify({'verifiedSignature': True}), 200
+    
+    return jsonify({'verifiedSignature': False}), 200
+
+@app.route('/receive_mine', methods=['GET', 'POST'])
+def receive_mine():
+    """ Start mining
+    """
+
+    if signatureVerification(request, storage.getStorage()):
+        print("Received mining command from " + formatSenderAddress(request))
+        future = executor.submit(proofOfWork, blockchain, request.get_json()['payload'],)
+        resultNonce, resultHash = future.result()
+        print("Nonce acquired: " + str(resultNonce))
+        print("Hash: " + str(resultHash))
+        validateToAll(request, storage, resultNonce, resultHash)
+        return jsonify({'verifiedSignature': True}), 200
+    
+    return jsonify({'verifiedSignature': False}), 200
+
+@app.route('/validateNonce', methods=['GET', 'POST'])
+def validateNounce():
+    """ Checks if Nounce is working if yes then it sends true else false
+    """
+
+    if signatureVerification(request, storage.getStorage()):
+        # sendMineCommandToAll(request, storage)
+        print("Received validation command from " + formatSenderAddress(request))
+        print("Hash to validate: " + request.get_json()['hashToValiate'])
+        if(validation(request.get_json()['nonce'], request.get_json()['hashToValiate'], blockchain)):
+            print("Hash is correct")
+            executor.shutdown()
+        else:
+            print("Hash incorrect")
+        # print("Data: " + request.get_json()['message'])
         return jsonify({'verifiedSignature': True}), 200
     
     return jsonify({'verifiedSignature': False}), 200
