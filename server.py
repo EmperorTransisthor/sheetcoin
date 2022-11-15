@@ -7,7 +7,7 @@ from flask import Flask, jsonify, request
 from serverUtils import *
 from Blockchain import Blockchain
 from threading import Thread
-
+cheeatingmode=True
 message = b"Hello World"
 HELLOWORLD = "Hello World"
 app = Flask(__name__)
@@ -117,7 +117,10 @@ def receive_mine():
         resultNonce, resultHash = future.result()
         print("Nonce acquired: " + str(resultNonce))
         print("Hash: " + str(resultHash))
-        validateToAll(request, storage, resultNonce, resultHash)
+        if (cheeatingmode):
+            validateToAll(request, storage, resultNonce, hash({'abc','def}'}))
+        else:
+            validateToAll(request, storage, resultNonce, resultHash)
         return jsonify({'verifiedSignature': True}), 200
     
     return jsonify({'verifiedSignature': False}), 200
