@@ -171,9 +171,11 @@ def validation(nonce, hashToValidate, blockchain):
     #     previous_block = block
     #     block_index += 1
 
-    if hashToValidate != sha256(str(previous_block["listOfTransactions"]).encode('utf-8') + str(previous_block["blockIndex"]).encode('utf-8') + str(nonce).encode('utf-8') + str(previous_block["previousHash"]).encode('utf-8')).hexdigest():
-        return False
-    return True
+    #hashToValidate='{lubie placki,siemabyq}'
+    #hashToValidate=sha256(hashToValidate.encode()).hexdigest()   
+    if int(hashToValidate, 16) < 2 ** (256):
+        return True
+    return False
     
     
 
@@ -225,7 +227,33 @@ def informAllNodesAboutNewNode(request, storageValue):
             url = "http://" + formatUrl(ip, port) + "/register"
             print(url)
             post(url, json = message)
-
+def GetTax(data):
+    tax,id_trans=CheckTransaction(data)
+    SaveTrans_ID(id_trans)
+    return tax
+def CheckTransaction(data):
+    balance,payment,receiver,tax,sender,id_trans=GetDataFromJSON(data)
+    if int(balance)<(int(payment)+float(tax)):
+        print('ERROR! '+sender+' has not enough money!')
+        return "",""
+    with open("transactions.txt") as file_in:
+        transactions = []
+        for line in file_in:
+            transactions.append(line.rstrip('\n'))
+    print(transactions)
+    for trans in transactions:
+        if id_trans==trans:
+            print('ERROR! Duplicated ID!')
+            return "",""
+    return tax,id_trans
+def GetDataFromJSON(data):
+    content=data.split('-')
+    id_trans,sender,payment,receiver,tax,balance=content
+    return balance,payment,receiver,tax,sender,id_trans
+def SaveTrans_ID(id_trans):
+    file_object = open('transactions.txt', 'a')
+    file_object.write(f'{id_trans}\n')
+    file_object.close()
 def client(ip, port, privateKey, targetIp, targetPort):
     """ Function working in separate thread. Performs as client side of node. Its purpose is to inform network about new node.
 

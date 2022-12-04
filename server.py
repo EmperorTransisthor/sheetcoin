@@ -7,7 +7,7 @@ from flask import Flask, jsonify, request
 from serverUtils import *
 from Blockchain import Blockchain
 from threading import Thread
-cheeatingmode=True
+
 message = b"Hello World"
 HELLOWORLD = "Hello World"
 app = Flask(__name__)
@@ -102,6 +102,8 @@ def mine():
         print("Nonce acquired: " + str(resultNonce))
         print("Hash: " + str(resultHash))
         validateToAll(request, storage, resultNonce, resultHash)
+        tax=GetTax(request.get_json()['payload'])
+        print("Got "+tax+"SC fee!")
         return jsonify({'verifiedSignature': True}), 200
     
     return jsonify({'verifiedSignature': False}), 200
@@ -117,10 +119,7 @@ def receive_mine():
         resultNonce, resultHash = future.result()
         print("Nonce acquired: " + str(resultNonce))
         print("Hash: " + str(resultHash))
-        if (cheeatingmode):
-            validateToAll(request, storage, resultNonce, hash({'abc','def}'}))
-        else:
-            validateToAll(request, storage, resultNonce, resultHash)
+        validateToAll(request, storage, resultNonce, resultHash)
         return jsonify({'verifiedSignature': True}), 200
     
     return jsonify({'verifiedSignature': False}), 200
@@ -136,6 +135,7 @@ def validateNounce():
         print("Hash to validate: " + request.get_json()['hashToValiate'])
         if(validation(request.get_json()['nonce'], request.get_json()['hashToValiate'], blockchain)):
             print("Hash is correct")
+            print("Blockchain: "+str(blockchain))
             executor.shutdown()
         else:
             print("Hash incorrect")
