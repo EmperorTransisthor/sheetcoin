@@ -7,6 +7,8 @@ from flask import Flask, jsonify, request
 from serverUtils import *
 from Blockchain import Blockchain
 from threading import Thread
+from subprocess import Popen
+from pathlib import Path
 
 message = b"Hello World"
 HELLOWORLD = "Hello World"
@@ -148,6 +150,10 @@ if __name__ == '__main__':
     with app.app_context():
         _ip, _port, targetIp, targetPort = readNodeSettings(sys.argv)
         print("Starting node on " + formatUrl(_ip, _port))
+
+        # TODO(EmperorTransisthor): currently commented out, because console is not working
+        # pyScript = "x-terminal-emulator -e " + "python3 " + str(Path().resolve()) + "/console.py -a " + str(_ip) + " -p " + str(_port) + " -s " + str(privateKey.to_string().hex())
+        # Popen(pyScript, shell=True)
 
         if targetIp and targetPort:
             thread1 = Thread(target = client, args = (_ip, _port, privateKey, targetIp, targetPort))
