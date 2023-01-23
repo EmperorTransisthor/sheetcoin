@@ -9,6 +9,7 @@ from Blockchain import Blockchain
 from threading import Thread
 from subprocess import Popen
 from pathlib import Path
+from random import randrange
 
 message = b"Hello World"
 HELLOWORLD = "Hello World"
@@ -131,7 +132,9 @@ def validateNounce():
     """ Checks if Nounce is working if yes then it sends true else false
     """
 
-    if signatureVerification(request, storage.getStorage()):
+    receivalFailureProbability = randrange(0, 100)
+    print("\nFailue: " + str(receivalFailureProbability))
+    if signatureVerification(request, storage.getStorage()) and (90 > receivalFailureProbability):
         # sendMineCommandToAll(request, storage)
         print("Received validation command from " + formatSenderAddress(request))
         print("Hash to validate: " + request.get_json()['hashToValiate'])
@@ -141,8 +144,12 @@ def validateNounce():
             executor.shutdown()
         else:
             print("Hash incorrect")
+            # orphanBlockList.push(block)
         # print("Data: " + request.get_json()['message'])
         return jsonify({'verifiedSignature': True}), 200
+
+    else:
+        print("\n\nConnection failure!\n\n")
     
     return jsonify({'verifiedSignature': False}), 200
 

@@ -179,9 +179,10 @@ def validation(nonce, hashToValidate, blockchain):
 
     #hashToValidate='{lubie placki,siemabyq}'
     #hashToValidate=sha256(hashToValidate.encode()).hexdigest()   
-    if int(hashToValidate, 16) < 2 ** (256):
-        return True
-    return False
+    # if int(hashToValidate, 16) < 2 ** (256):
+    #     return True
+    # return False
+    return True
     
     
 
