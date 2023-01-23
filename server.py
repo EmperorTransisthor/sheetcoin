@@ -6,6 +6,7 @@ from hashlib import sha3_512
 from flask import Flask, jsonify, request
 from serverUtils import *
 from Blockchain import Blockchain
+from orphanBlockList import OrhpanBlockList
 from threading import Thread
 from subprocess import Popen
 from pathlib import Path
@@ -20,6 +21,7 @@ publicKey = privateKey.get_verifying_key()                                      
 signature = privateKey.sign(message)
 storage = Storage()
 blockchain = Blockchain()
+orphanBlockList = OrhpanBlockList()
 
 # proofOfWorkThread = Thread(target = proofOfWork, args = (blockchain))
 executor = ThreadPoolExecutor(1)
@@ -136,15 +138,18 @@ def validateNounce():
     print("\nFailue: " + str(receivalFailureProbability))
     if signatureVerification(request, storage.getStorage()) and (90 > receivalFailureProbability):
         # sendMineCommandToAll(request, storage)
+        validatedHash = request.get_json()['hashToValiate']
+
         print("Received validation command from " + formatSenderAddress(request))
-        print("Hash to validate: " + request.get_json()['hashToValiate'])
-        if(validation(request.get_json()['nonce'], request.get_json()['hashToValiate'], blockchain)):
+        print("Hash to validate: " + validatedHash)
+        if(validation(request.get_json()['nonce'], validatedHash, blockchain)):
             print("Hash is correct")
             print("Blockchain: "+str(blockchain))
             executor.shutdown()
         else:
-            print("Hash incorrect")
-            # orphanBlockList.push(block)
+            print("Orphan block detected, pushing into orphan blocks!")
+            orphanBlockList.push(validatedHash)
+            orphanBlockList.print()
         # print("Data: " + request.get_json()['message'])
         return jsonify({'verifiedSignature': True}), 200
 

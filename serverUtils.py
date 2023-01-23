@@ -164,6 +164,7 @@ def findHashNonce(listOfTransactions, previousHash, blockIndex):
     return nonce    
 
 def validation(nonce, hashToValidate, blockchain):
+    #TODO(EmperorTransisthor): validate orphans
     # previous_block = blockchain.chain[0]
     previous_block = blockchain.print_previous_block()
     print(blockchain)
@@ -182,7 +183,7 @@ def validation(nonce, hashToValidate, blockchain):
     # if int(hashToValidate, 16) < 2 ** (256):
     #     return True
     # return False
-    return True
+    return False
     
     
 
