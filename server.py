@@ -105,7 +105,7 @@ def mine():
         print("Hash: " + str(resultHash))
         validateToAll(request, storage, resultNonce, resultHash)
         tax=GetTax(request.get_json()['payload'])
-        print("Got "+tax+"SC fee!")
+        print("Got "+str(tax)+"SC fee!")
         return jsonify({'verifiedSignature': True}), 200
     
     return jsonify({'verifiedSignature': False}), 200

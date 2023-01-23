@@ -7,7 +7,13 @@ from hashlib import sha3_512
 from hashlib import sha256
 from time import time
 
-
+wallet = {
+"John":63.5,
+"Andrew":300.0,
+"Mark":400.0,
+"Juliette":2.0,
+"Steven":0.0
+}
 PREFIX_ZEROS = '0000'
 
 def pushNewNodeToStorage(request, storage):
@@ -231,11 +237,16 @@ def GetTax(data):
     tax,id_trans=CheckTransaction(data)
     SaveTrans_ID(id_trans)
     return tax
+def IncludeTax(payment):
+    return float(payment)*0.25
 def CheckTransaction(data):
-    balance,payment,receiver,tax,sender,id_trans=GetDataFromJSON(data)
-    if int(balance)<(int(payment)+float(tax)):
+    payment,receiver,sender,id_trans=GetDataFromJSON(data)
+    tax=IncludeTax(payment)
+    if int(wallet[sender])<(int(payment)+float(tax)):
+        print(sender +'has'+payment +'tax: '+str(tax))
         print('ERROR! '+sender+' has not enough money!')
         return "",""
+    wallet[receiver]=wallet[receiver]+float(payment) #give money
     with open("transactions.txt") as file_in:
         transactions = []
         for line in file_in:
@@ -248,8 +259,8 @@ def CheckTransaction(data):
     return tax,id_trans
 def GetDataFromJSON(data):
     content=data.split('-')
-    id_trans,sender,payment,receiver,tax,balance=content
-    return balance,payment,receiver,tax,sender,id_trans
+    id_trans,sender,payment,receiver=content
+    return payment,receiver,sender,id_trans
 def SaveTrans_ID(id_trans):
     file_object = open('transactions.txt', 'a')
     file_object.write(f'{id_trans}\n')
