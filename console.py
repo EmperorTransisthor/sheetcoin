@@ -9,6 +9,8 @@ import traceback
 def send_request(command, payload):
     url = "http://" + ip + ":" + port + "/" + command
     response = ""
+    print("payload")
+    print(payload)
     try:
         response = requests.post(url, payload)
         print(response.text)
@@ -67,7 +69,7 @@ while True:
             send_request("message", payload)
         except Exception:
             print(traceback.format_exc())
-    elif cmd == "exit" or "q":
+    elif cmd == "exit" or cmd == "q":
         sys.exit(0)
     else:
         print("Unknown command. Commands:")

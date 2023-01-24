@@ -164,8 +164,8 @@ if __name__ == '__main__':
         print("Starting node on " + formatUrl(_ip, _port))
 
         # TODO(EmperorTransisthor): currently commented out, because console is not working
-        # pyScript = "x-terminal-emulator -e " + "python3 " + str(Path().resolve()) + "/console.py -a " + str(_ip) + " -p " + str(_port) + " -s " + str(privateKey.to_string().hex())
-        # Popen(pyScript, shell=True)
+        pyScript = "x-terminal-emulator -e " + "python3 " + str(Path().resolve()) + "/console.py -a " + str(_ip) + " -p " + str(_port) + " -s " + str(privateKey.to_string().hex())
+        Popen(pyScript, shell=True)
 
         if targetIp and targetPort:
             thread1 = Thread(target = client, args = (_ip, _port, privateKey, targetIp, targetPort))
