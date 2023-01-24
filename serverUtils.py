@@ -11,9 +11,9 @@ from time import time
 
 wallet = {
 "John":63.5,
-"Andrew":300.0,
+"Andrew":980.0,
 "Mark":400.0,
-"Juliette":2.0,
+"Juliette":5.0,
 "Steven":0.0
 }
 PREFIX_ZEROS = '0000'
@@ -195,9 +195,9 @@ def validation(nonce, hashToValidate, blockchain):
     # if block_hash != hashToValidate['hash']:
     #     return False
 
-    # previous_block = blockchain.getPreviousBlock()
-    # if previous_block['hash'] != hashToValidate['previousHash']:
-    #     return False
+    previous_block = blockchain.getPreviousBlock()
+    if len(previous_block['hash']) != len(hashToValidate):
+        return False
 
     # block_hash = hashlib.sha256(json.dumps(hashToValidate).encode()).hexdigest()
     # if block_hash != hashToValidate['hash']:
