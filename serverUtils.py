@@ -270,15 +270,6 @@ def CheckTransaction(data):
         print('ERROR! '+sender+' has not enough money!')
         return "",""
     wallet[receiver]=wallet[receiver]+float(payment) #give money
-    with open("transactions.txt") as file_in:
-        transactions = []
-        for line in file_in:
-            transactions.append(line.rstrip('\n'))
-    print(transactions)
-    for trans in transactions:
-        if id_trans==trans:
-            print('ERROR! Duplicated ID!')
-            return "",""
     return tax,id_trans
 def GetDataFromJSON(data):
     content=data.split('-')
@@ -288,6 +279,18 @@ def SaveTrans_ID(id_trans):
     file_object = open('transactions.txt', 'a')
     file_object.write(f'{id_trans}\n')
     file_object.close()
+def CheckForDuplicate(data):
+    __,__,__,id_trans=GetDataFromJSON(data)
+    with open("transactions.txt") as file_in:
+        transactions = []
+        for line in file_in:
+            transactions.append(line.rstrip('\n'))
+    print(transactions)
+    for trans in transactions:
+        if id_trans==trans:
+            print('ERROR! Duplicated ID!')
+            return True
+    return False
 def client(ip, port, privateKey, targetIp, targetPort):
     """ Function working in separate thread. Performs as client side of node. Its purpose is to inform network about new node.
 

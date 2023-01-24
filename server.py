@@ -107,8 +107,9 @@ def mine():
         print("Nonce acquired: " + str(resultNonce))
         print("Hash: " + str(resultHash))
         validateToAll(request, storage, resultNonce, resultHash)
-        tax=GetTax(request.get_json()['payload'])
-        print("Got "+str(tax)+"SC fee!")
+        if CheckForDuplicate(request.get_json()['payload'])==False:
+            tax=GetTax(request.get_json()['payload'])
+            print("Got "+str(tax)+"SC fee!")
         return jsonify({'verifiedSignature': True}), 200
     
     return jsonify({'verifiedSignature': False}), 200
