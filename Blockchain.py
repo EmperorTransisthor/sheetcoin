@@ -1,5 +1,6 @@
 import hashlib
 import json
+import time
 
 class Blockchain:
    
@@ -16,13 +17,15 @@ class Blockchain:
     def createBlock(self, listOfTransactions, previousHash):
         block = {'blockIndex': len(self.chain) + 1,
                  'listOfTransactions': listOfTransactions,
+                 'timestamp': time.time(),
                  'previousHash': previousHash}
+        block['hash'] = self.hash(block)
         self.chain.append(block)
         return block
        
     # This function is created
     # to display the previous block
-    def print_previous_block(self):
+    def getPreviousBlock(self):
         return self.chain[-1]
        
     # This is the function for proof of work

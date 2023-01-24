@@ -1,6 +1,8 @@
 import ecdsa
 import sys
 import getopt
+import hashlib
+import json
 from requests import post
 from time import sleep
 from hashlib import sha3_512
@@ -133,10 +135,10 @@ def proofOfWork(blockchain, listOfTransactions):
     # checkpoint the current time
     start_time = time()
     # make a new block which includes the hash from the previous block
-    blockchain.createBlock(listOfTransactions, blockchain.print_previous_block()['previousHash'])
+    blockchain.createBlock(listOfTransactions, blockchain.getPreviousBlock()['previousHash'])
 
     # find a valid nonce for the new block
-    (hash_result, nonce) = findHashNonce(listOfTransactions, blockchain.print_previous_block()['previousHash'], blockchain.print_previous_block()['blockIndex'])
+    (hash_result, nonce) = findHashNonce(listOfTransactions, blockchain.getPreviousBlock()['previousHash'], blockchain.getPreviousBlock()['blockIndex'])
 
     # checkpoint how long it took to find a result
     end_time = time()
@@ -166,7 +168,7 @@ def findHashNonce(listOfTransactions, previousHash, blockIndex):
 def validation(nonce, hashToValidate, blockchain):
     #TODO(EmperorTransisthor): validate orphans
     # previous_block = blockchain.chain[0]
-    previous_block = blockchain.print_previous_block()
+    # previous_block = blockchain.getPreviousBlock()
     print(blockchain)
     # block_index = 1
     
@@ -183,7 +185,26 @@ def validation(nonce, hashToValidate, blockchain):
     # if int(hashToValidate, 16) < 2 ** (256):
     #     return True
     # return False
-    return False
+    # return False
+
+    # previous_block = blockchain.getPreviousBlock()
+    # if previous_block['hash'] != hashToValidate['previousHash']:
+    #     return False
+
+    # block_hash = hashlib.sha256(json.dumps(hashToValidate).encode()).hexdigest()
+    # if block_hash != hashToValidate['hash']:
+    #     return False
+
+    # previous_block = blockchain.getPreviousBlock()
+    # if previous_block['hash'] != hashToValidate['previousHash']:
+    #     return False
+
+    # block_hash = hashlib.sha256(json.dumps(hashToValidate).encode()).hexdigest()
+    # if block_hash != hashToValidate['hash']:
+    #     return False
+
+    return True
+
     
     
 
