@@ -138,7 +138,7 @@ def proofOfWork(blockchain, listOfTransactions):
     blockchain.createBlock(listOfTransactions, blockchain.getPreviousBlock()['previousHash'])
 
     # find a valid nonce for the new block
-    (hash_result, nonce) = findHashNonce(listOfTransactions, blockchain.getPreviousBlock()['previousHash'], blockchain.getPreviousBlock()['blockIndex'])
+    (hash_result, nonce) = findHashNonce(listOfTransactions, blockchain.getPreviousBlock()['previousHash'], blockchain.getPreviousBlock()['index'])
 
     # checkpoint how long it took to find a result
     end_time = time()
@@ -152,11 +152,11 @@ def proofOfWork(blockchain, listOfTransactions):
     #return results to validate in other nodes
     return nonce, hash_result
 
-def findHashNonce(listOfTransactions, previousHash, blockIndex):
+def findHashNonce(listOfTransactions, previousHash, index):
     #  here we set how long it can search nonce
     max_nonce = 2 ** 32
     for nonce in range(max_nonce):
-        hash_result = sha256(str(listOfTransactions).encode('utf-8') + str(blockIndex).encode('utf-8') + str(nonce).encode('utf-8') + str(previousHash).encode('utf-8')).hexdigest()
+        hash_result = sha256(str(listOfTransactions).encode('utf-8') + str(index).encode('utf-8') + str(nonce).encode('utf-8') + str(previousHash).encode('utf-8')).hexdigest()
         # check if this is a valid result, hash has to start with 4 zeros
         if hash_result.startswith(PREFIX_ZEROS): 
             print(f"Success with nonce {nonce}")

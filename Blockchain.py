@@ -3,25 +3,65 @@ import json
 import time
 
 class Blockchain:
-   
-    # This function is created
-    # to create the very first
-    # block and set its hash to "0"
+
     def __init__(self):
+        self.nodeBalance = 0.0
+        self.userWallets = {}
         self.chain = []
+        self.currentTransactions = []
         self.createBlock(previousHash='0', listOfTransactions=[])
  
-    # This function is created
-    # to add further blocks
-    # into the chain
-    def createBlock(self, listOfTransactions, previousHash):
-        block = {'blockIndex': len(self.chain) + 1,
-                 'listOfTransactions': listOfTransactions,
+    def createBlock(self, previousHash, proof): #TODO(EmperorTransisthor): Should we rename previousHash variable?
+        """ Adds block to blockchain
+
+        Args:
+            `previousHash` -> `String`: previously calculated hash in hexadecimal format
+            `proof` -> `String`: proof of work
+        Returns:
+            `block` -> `dict`: current block structure
+        """
+
+        block = {'index': len(self.chain) + 1,
+                 'transactions': self.currentTransactions,
+                 'proof': proof,
                  'timestamp': time.time(),
                  'previousHash': previousHash}
-        block['hash'] = self.hash(block)
+        self.currentTransactions = []
         self.chain.append(block)
         return block
+
+    def createTransaction(self, sender, recipient, transactionAmount):
+        """ Adds transaction to transaction pool
+
+        Args:
+            `sender` -> `String`: transaction sender
+            `recipient` -> `String`: transaction recipient
+            `transactionAmount` -> `float`: transaction amount
+        Returns:
+            `block` -> `dict`: current block structure
+        """
+
+        if sender not in self.userWallets:
+            self.userWallets[sender] = 0
+        if recipient not in self.userWallets:
+            self.userWallets[recipient] = 0
+
+        tax = transactionAmount * 0.05
+        totalAmount = transactionAmount + tax
+
+        if self.userWallets[sender] < totalAmount:
+            raise Exception ("Insufficient funds")
+
+        self.userWallets[sender] -= totalAmount
+        self.userWallets[recipient] += transactionAmount
+        self.nodeBalance += tax
+
+        self.currentTransactions.append({
+            'sender': sender,
+            'recipient': recipient,
+            'amount': transactionAmount,
+        })
+        return self.getPreviousBlock['index'] + 1
        
     # This function is created
     # to display the previous block
