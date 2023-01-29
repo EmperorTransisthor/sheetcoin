@@ -149,7 +149,7 @@ def validateNounce():
 
     receivalFailureProbability = randrange(0, 100)
     print("\nFailue: " + str(receivalFailureProbability))
-    if signatureVerification(request, storage.getStorage()) and (90 > receivalFailureProbability):
+    if signatureVerification(request, storage.getStorage()) and (90 < receivalFailureProbability):
     # if signatureVerification(request, storage.getStorage()):
         # sendMineCommandToAll(request, storage)
         validatedHash = request.get_json()['hashToValiate']
