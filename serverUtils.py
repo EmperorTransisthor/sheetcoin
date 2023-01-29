@@ -17,6 +17,8 @@ wallet = {
 "Steven":0.0
 }
 PREFIX_ZEROS = '0000'
+DIFFICULTY_BITS = 14
+MAX_NONCE = 2**32
 
 def pushNewNodeToStorage(request, storage):
     """ Add new node IP, port and publicKey to storage.
@@ -132,22 +134,11 @@ def proofOfWork(blockchain, listOfTransactions):
 
     
     print('Starting search...')
-    # checkpoint the current time
-    start_time = time()
     # make a new block which includes the hash from the previous block
     blockchain.createBlock(blockchain.getPreviousBlock()['previousHash'], 'p') # FIXME(EmperorTransisthor): proofOfWork 'p'
 
     # find a valid nonce for the new block
     (hash_result, nonce) = findHashNonce(listOfTransactions, blockchain.getPreviousBlock()['previousHash'], blockchain.getPreviousBlock()['index'])
-
-    # checkpoint how long it took to find a result
-    end_time = time()
-    elapsed_time = end_time - start_time
-    print('Elapsed Time: %.4f seconds' % elapsed_time)
-    if elapsed_time > 0:
-        # estimate the hashes per second
-        hash_power = float(nonce / elapsed_time)
-        print('Hashing Power: %ld hashes per second' % hash_power)
 
     #return results to validate in other nodes
     return nonce, hash_result
@@ -155,54 +146,31 @@ def proofOfWork(blockchain, listOfTransactions):
 def findHashNonce(listOfTransactions, previousHash, index):
     #  here we set how long it can search nonce
     max_nonce = 2 ** 32
+    start_time = time()
     for nonce in range(max_nonce):
         hash_result = sha256(str(listOfTransactions).encode('utf-8') + str(index).encode('utf-8') + str(nonce).encode('utf-8') + str(previousHash).encode('utf-8')).hexdigest()
-        # check if this is a valid result, hash has to start with 4 zeros
-        if hash_result.startswith(PREFIX_ZEROS): 
+        target = 2 ** (256 - DIFFICULTY_BITS)
+        if int(hash_result, 16) < target:
+            end_time = time()
+            elapsed_time = end_time - start_time
+            hash_power = float(nonce / elapsed_time)
             print(f"Success with nonce {nonce}")
             print(f'Hash is {hash_result}')
+            print('Elapsed Time: %.4f seconds' % elapsed_time)
+            print('Hashing Power: %ld hashes per second' % hash_power)
             return (hash_result,nonce)
     print(f'Failed after {nonce} tries')
     return nonce    
 
 def validation(nonce, hashToValidate, blockchain):
-    #TODO(EmperorTransisthor): validate orphans
-    # previous_block = blockchain.chain[0]
-    # previous_block = blockchain.getPreviousBlock()
-    print(blockchain)
-    # block_index = 1
-    
-    # while block_index < len(blockchain.chain):
-    #     block = blockchain.chain[block_index]
-    #     if block['previousHash'] != blockchain.hash(previous_block):
-    #         return False
-
-    #     previous_block = block
-    #     block_index += 1
-
-    #hashToValidate='{lubie placki,siemabyq}'
-    #hashToValidate=sha256(hashToValidate.encode()).hexdigest()   
-    # if int(hashToValidate, 16) < 2 ** (256):
-    #     return True
-    # return False
-    # return False
-
-    # previous_block = blockchain.getPreviousBlock()
-    # if previous_block['hash'] != hashToValidate['previousHash']:
-    #     return False
-
-    # block_hash = hashlib.sha256(json.dumps(hashToValidate).encode()).hexdigest()
-    # if block_hash != hashToValidate['hash']:
-    #     return False
-
     previous_block = blockchain.getPreviousBlock()
+    print("previous hash: " + str(blockchain.getPreviousBlock()['previousHash']))
+    print("hash to validate: " + str(hashToValidate))
+    print("len first: " + str(len(previous_block['previousHash'])))
+    print("len second: "+ str(len(hashToValidate)))
     #FIXME(EmperorTransisthor): ?
-    if len(blockchain.getPreviousBlock()['previousHash']) != len(hashToValidate):
+    if len(previous_block['previousHash']) != len(hashToValidate):
         return False
-
-    # block_hash = hashlib.sha256(json.dumps(hashToValidate).encode()).hexdigest()
-    # if block_hash != hashToValidate['hash']:
-    #     return False
 
     return True
 

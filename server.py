@@ -135,17 +135,19 @@ def validateNounce():
     """ Checks if Nounce is working if yes then it sends true else false
     """
 
-    receivalFailureProbability = randrange(0, 100)
+    receivalFailureProbability = randrange(0, 200)
     print("\nFailue: " + str(receivalFailureProbability))
     if signatureVerification(request, storage.getStorage()) and (90 > receivalFailureProbability):
+    # if signatureVerification(request, storage.getStorage()):
         # sendMineCommandToAll(request, storage)
         validatedHash = request.get_json()['hashToValiate']
-
+        nonce = request.get_json()['nonce']
         print("Received validation command from " + formatSenderAddress(request))
         print("Hash to validate: " + validatedHash)
-        if(validation(request.get_json()['nonce'], validatedHash, blockchain)):
+        if(validation(nonce, validatedHash, blockchain)):
             print("Hash is correct")
             print("Blockchain: "+str(blockchain))
+            blockchain.createBlock(validatedHash, nonce) # FIXME(EmperorTransisthor): ?
             executor.shutdown()
         else:
             print("Orphan block detected, pushing into orphan blocks!")
@@ -165,8 +167,8 @@ if __name__ == '__main__':
         print("Starting node on " + formatUrl(_ip, _port))
 
         # TODO(EmperorTransisthor): currently commented out, because console is not working
-        pyScript = "x-terminal-emulator -e " + "python3 " + str(Path().resolve()) + "/console.py -a " + str(_ip) + " -p " + str(_port) + " -s " + str(privateKey.to_string().hex())
-        Popen(pyScript, shell=True)
+        # pyScript = "x-terminal-emulator -e " + "python3 " + str(Path().resolve()) + "/console.py -a " + str(_ip) + " -p " + str(_port) + " -s " + str(privateKey.to_string().hex())
+        # Popen(pyScript, shell=True)
 
         if targetIp and targetPort:
             thread1 = Thread(target = client, args = (_ip, _port, privateKey, targetIp, targetPort))

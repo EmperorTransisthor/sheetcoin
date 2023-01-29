@@ -2,6 +2,8 @@ import hashlib
 import json
 import time
 
+INITIAL_HASH = "0" * 64
+
 class Blockchain:
 
     def __init__(self):
@@ -9,9 +11,9 @@ class Blockchain:
         self.userWallets = {}
         self.chain = []
         self.currentTransactions = []
-        self.createBlock(previousHash='0', proof='0') # FIXME(EmperorTransisthor): proofOfWork '0' ?
+        self.createBlock(previousHash=INITIAL_HASH, nonce = 0) # FIXME(EmperorTransisthor): proofOfWork '0' ?
  
-    def createBlock(self, previousHash, proof): #TODO(EmperorTransisthor): Should we rename previousHash variable?
+    def createBlock(self, previousHash, nonce): #TODO(EmperorTransisthor): Should we rename previousHash variable?
         """ Adds block to blockchain
 
         Args:
@@ -23,9 +25,9 @@ class Blockchain:
 
         block = {'index': len(self.chain) + 1,
                  'transactions': self.currentTransactions,
-                 'proof': proof,
                  'timestamp': time.time(),
-                 'previousHash': previousHash}
+                 'previousHash': previousHash,
+                 'nonce': nonce}
         self.currentTransactions = []
         self.chain.append(block)
         return block
