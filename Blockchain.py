@@ -9,7 +9,7 @@ class Blockchain:
         self.userWallets = {}
         self.chain = []
         self.currentTransactions = []
-        self.createBlock(previousHash='0', listOfTransactions=[])
+        self.createBlock(previousHash='0', proof='0') # FIXME(EmperorTransisthor): proofOfWork '0' ?
  
     def createBlock(self, previousHash, proof): #TODO(EmperorTransisthor): Should we rename previousHash variable?
         """ Adds block to blockchain

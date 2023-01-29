@@ -1,2 +1,5 @@
 # cache
 __pycache__
+
+# simplecoin temp files
+transactions.txt

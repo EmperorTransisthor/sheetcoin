@@ -135,7 +135,7 @@ def proofOfWork(blockchain, listOfTransactions):
     # checkpoint the current time
     start_time = time()
     # make a new block which includes the hash from the previous block
-    blockchain.createBlock(listOfTransactions, blockchain.getPreviousBlock()['previousHash'])
+    blockchain.createBlock(blockchain.getPreviousBlock()['previousHash'], 'p') # FIXME(EmperorTransisthor): proofOfWork 'p'
 
     # find a valid nonce for the new block
     (hash_result, nonce) = findHashNonce(listOfTransactions, blockchain.getPreviousBlock()['previousHash'], blockchain.getPreviousBlock()['index'])
@@ -196,7 +196,8 @@ def validation(nonce, hashToValidate, blockchain):
     #     return False
 
     previous_block = blockchain.getPreviousBlock()
-    if len(previous_block['hash']) != len(hashToValidate):
+    #FIXME(EmperorTransisthor): ?
+    if len(blockchain.getPreviousBlock()['previousHash']) != len(hashToValidate):
         return False
 
     # block_hash = hashlib.sha256(json.dumps(hashToValidate).encode()).hexdigest()
