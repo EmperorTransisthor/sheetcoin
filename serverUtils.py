@@ -334,7 +334,10 @@ def signatureVerificationProxy(request, storageValue):
 
     except:
         return False
-
+def PrivKeyToFile(privateKey):
+        f = open("PrivateKeys/"+str(privateKey.to_string().hex())+".txt", "wb")
+        f.write(bytes(str(privateKey.to_string().hex()),'utf-8'))
+        f.close()
 def formatSenderAddress(request):
     """ Formats sender url address form request.
 
