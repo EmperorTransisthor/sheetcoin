@@ -39,7 +39,7 @@ def send_all(ip, port, privateKey, payload):
     response = post(url, json=message)
     # print(response.content.decode('utf-8'))
 
-def mine(ip, port, privateKey, payload):
+def mine(ip, port, privateKey, payload, id, sender, value, receiver):
     """ Sends mine command to specified node and orders it to send mine command to whole network.
     After mining is done prints added block.
 
@@ -54,6 +54,10 @@ def mine(ip, port, privateKey, payload):
             "ip": ip,
             "port": port,
             "payload": payload,
+            "id": id,
+            "sender": sender,
+            "value": value,
+            "receiver": receiver,
             "signature": privateKey.sign(bytes(payload, 'utf-8')).hex()
     }
     url = "http://" + str(ip) + ":" + str(port) + "/mine"

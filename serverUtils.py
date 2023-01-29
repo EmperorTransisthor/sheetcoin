@@ -160,7 +160,7 @@ def findHashNonce(listOfTransactions, previousHash, index):
             print('Hashing Power: %ld hashes per second' % hash_power)
             return (hash_result,nonce)
     print(f'Failed after {nonce} tries')
-    return nonce    
+    return -1
 
 def validation(nonce, hashToValidate, blockchain):
     previous_block = blockchain.getPreviousBlock()
@@ -225,41 +225,7 @@ def informAllNodesAboutNewNode(request, storageValue):
             url = "http://" + formatUrl(ip, port) + "/register"
             print(url)
             post(url, json = message)
-def GetTax(data):
-    tax,id_trans=CheckTransaction(data)
-    SaveTrans_ID(id_trans)
-    return tax
-def IncludeTax(payment):
-    return float(payment)*0.25
-def CheckTransaction(data):
-    payment,receiver,sender,id_trans=GetDataFromJSON(data)
-    tax=IncludeTax(payment)
-    if int(wallet[sender])<(int(payment)+float(tax)):
-        print(sender +'has'+payment +'tax: '+str(tax))
-        print('ERROR! '+sender+' has not enough money!')
-        return "",""
-    wallet[receiver]=wallet[receiver]+float(payment) #give money
-    return tax,id_trans
-def GetDataFromJSON(data):
-    content=data.split('-')
-    id_trans,sender,payment,receiver=content
-    return payment,receiver,sender,id_trans
-def SaveTrans_ID(id_trans):
-    file_object = open('transactions.txt', 'a')
-    file_object.write(f'{id_trans}\n')
-    file_object.close()
-def CheckForDuplicate(data):
-    __,__,__,id_trans=GetDataFromJSON(data)
-    with open("transactions.txt") as file_in:
-        transactions = []
-        for line in file_in:
-            transactions.append(line.rstrip('\n'))
-    print(transactions)
-    for trans in transactions:
-        if id_trans==trans:
-            print('ERROR! Duplicated ID!')
-            return True
-    return False
+
 def client(ip, port, privateKey, targetIp, targetPort):
     """ Function working in separate thread. Performs as client side of node. Its purpose is to inform network about new node.
 

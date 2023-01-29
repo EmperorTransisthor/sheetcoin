@@ -99,18 +99,30 @@ def mine():
 
     if signatureVerification(request, storage.getStorage()):
         sendMineCommandToAll(request, storage)
+        transactionId = request.get_json()['id']
+        sender = request.get_json()['sender']
+        recipient = request.get_json()['receiver']
+        amount = float(request.get_json()['value'])
         print("Received mining command from " + formatSenderAddress(request))
-        # print("Data: " + str(request.get_json()['payload']))
-        # start proof_of work - serching for candidate block
-        future = executor.submit(proofOfWork, blockchain, request.get_json()['payload'],)
-        resultNonce, resultHash = future.result()
-        print("Nonce acquired: " + str(resultNonce))
-        print("Hash: " + str(resultHash))
-        validateToAll(request, storage, resultNonce, resultHash)
-        if CheckForDuplicate(request.get_json()['payload'])==False:
-            tax=GetTax(request.get_json()['payload'])
-            print("Got "+str(tax)+"SC fee!")
-        return jsonify({'verifiedSignature': True}), 200
+        try:
+            blockchain.createTransaction(transactionId, sender, recipient, amount)
+            future = executor.submit(proofOfWork, blockchain, request.get_json()['payload'],)
+            resultNonce, resultHash = future.result()
+            print("Nonce acquired: " + str(resultNonce))
+            print("Hash: " + str(resultHash))
+            validateToAll(request, storage, resultNonce, resultHash)
+            return jsonify({'verifiedSignature': True}), 200
+            
+        except Exception as e:
+            if str(e) == "Insufficient funds":
+                return jsonify({'verifiedSignature': True, 'transactionValid': False}), 401
+            elif str(e) == "Duplicate transaction":
+                print("Duplicate transaction: " + str(transactionId))
+                return jsonify({'verifiedSignature': True, 'transactionValid': False}), 402 
+            else:
+                print("Caught error:")
+                print(e)
+                return jsonify({'verifiedSignature': True}), 500
     
     return jsonify({'verifiedSignature': False}), 200
 
@@ -135,7 +147,7 @@ def validateNounce():
     """ Checks if Nounce is working if yes then it sends true else false
     """
 
-    receivalFailureProbability = randrange(0, 200)
+    receivalFailureProbability = randrange(0, 100)
     print("\nFailue: " + str(receivalFailureProbability))
     if signatureVerification(request, storage.getStorage()) and (90 > receivalFailureProbability):
     # if signatureVerification(request, storage.getStorage()):
@@ -146,8 +158,9 @@ def validateNounce():
         print("Hash to validate: " + validatedHash)
         if(validation(nonce, validatedHash, blockchain)):
             print("Hash is correct")
-            print("Blockchain: "+str(blockchain))
-            blockchain.createBlock(validatedHash, nonce) # FIXME(EmperorTransisthor): ?
+            blockchain.print()
+            blockchain.createBlock(validatedHash, nonce)
+            blockchain.print()
             executor.shutdown()
         else:
             print("Orphan block detected, pushing into orphan blocks!")
