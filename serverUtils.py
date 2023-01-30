@@ -9,6 +9,7 @@ from hashlib import sha3_512
 from hashlib import sha256
 from time import time
 
+
 wallet = {
 "John":63.5,
 "Andrew":980.0,
@@ -124,14 +125,14 @@ def sendMineCommandToAll(request, storage):
         print(url)
         post(url, json = message)
 
-def proofOfWork(blockchain, listOfTransactions):
+def proofOfWork(queue, blockchain, listOfTransactions):
     nonce = 0
     hash_result = ''
     # difficulty from 0 to 24 bits
     # for difficulty_bits in range(24):
         # difficulty = 2 ** difficulty_bits
         # print(f'Difficulty: {difficulty} ({difficulty_bits})')
-
+    out = queue.get()
     
     print('Starting search...')
     # make a new block which includes the hash from the previous block
@@ -139,7 +140,9 @@ def proofOfWork(blockchain, listOfTransactions):
 
     # find a valid nonce for the new block
     (hash_result, nonce) = findHashNonce(listOfTransactions, blockchain.getPreviousBlock()['previousHash'], blockchain.getPreviousBlock()['index'])
-
+    out['hash'] = hash_result
+    out['nonce']=nonce
+    queue.put(out)
     #return results to validate in other nodes
     return nonce, hash_result
 
@@ -197,6 +200,7 @@ def validateToAll(request, storage, nonce, hashToValiate):
             "payload": request.get_json()["payload"],
             "nonce": nonce,
             "hashToValiate": hashToValiate,
+            "timeStamp":time(),
             "signature": request.get_json()['signature']
         }
         url = "http://" + formatUrl(ip, port) + "/validateNonce"

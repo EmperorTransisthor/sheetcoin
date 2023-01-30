@@ -1,6 +1,5 @@
 import ecdsa
 import sys
-from concurrent.futures import ThreadPoolExecutor
 from storage import Storage
 from hashlib import sha3_512
 from flask import Flask, jsonify, request
@@ -11,11 +10,12 @@ from threading import Thread
 from subprocess import Popen
 from pathlib import Path
 from random import randrange
-
+import multiprocessing
 message = b"Hello World"
 HELLOWORLD = "Hello World"
 app = Flask(__name__)
 
+evilnode=False
 privateKey = ecdsa.SigningKey.generate(curve=ecdsa.SECP256k1, hashfunc=sha3_512)    # private key
 publicKey = privateKey.get_verifying_key()                                          # public key
 signature = privateKey.sign(message)
@@ -24,7 +24,7 @@ blockchain = Blockchain()
 orphanBlockList = OrhpanBlockList()
 
 # proofOfWorkThread = Thread(target = proofOfWork, args = (blockchain))
-executor = ThreadPoolExecutor(1)
+process=None
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
@@ -98,8 +98,9 @@ def mine():
     """
 
     receivalFailureProbability = randrange(0, 100)
-    print("\nTransaction failure P: " + str(receivalFailureProbability))
-    if signatureVerification(request, storage.getStorage()) and (90 > receivalFailureProbability):
+    if (90 < receivalFailureProbability):
+        raise Exception("\nTransaction failure P: " + str(receivalFailureProbability))
+    if signatureVerification(request, storage.getStorage()):
         print("Received transaction")
         sendMineCommandToAll(request, storage)
         transactionId = request.get_json()['id']
@@ -108,12 +109,23 @@ def mine():
         amount = float(request.get_json()['value'])
         print("Received mining command from " + formatSenderAddress(request))
         try:
+            global process
+            global evilnode
             blockchain.createTransaction(transactionId, sender, recipient, amount)
-            future = executor.submit(proofOfWork, blockchain, request.get_json()['payload'],)
-            resultNonce, resultHash = future.result()
-            print("Nonce acquired: " + str(resultNonce))
-            print("Hash: " + str(resultHash))
-            validateToAll(request, storage, resultNonce, resultHash)
+            out = {'hash': '', 'nonce':0}
+            queue = multiprocessing.Queue()
+            queue.put(out)
+            process = multiprocessing.Process(target=proofOfWork, args=(queue,blockchain, request.get_json()['payload']))
+            process.start()
+            process.join()
+            process.terminate()
+            process.join()
+            copy=queue.get()
+            print("Nonce acquired: " + str(copy['nonce']))
+            print("Hash: " + str(copy['hash']))
+            if(evilnode):
+                validateToAll(request, storage, copy['nonce'], '0002ad6791f358938300bda0149f9f94919e1f3560e33c6317c9e7aa37932883')
+            validateToAll(request, storage, copy['nonce'], copy['hash'])
             return jsonify({'verifiedSignature': True}), 200
             
         except Exception as e:
@@ -136,11 +148,19 @@ def receive_mine():
 
     if signatureVerification(request, storage.getStorage()):
         print("Received mining command from " + formatSenderAddress(request))
-        future = executor.submit(proofOfWork, blockchain, request.get_json()['payload'],)
-        resultNonce, resultHash = future.result()
-        print("Nonce acquired: " + str(resultNonce))
-        print("Hash: " + str(resultHash))
-        validateToAll(request, storage, resultNonce, resultHash)
+        global process
+        out = {'hash': '', 'nonce':0}
+        queue = multiprocessing.Queue()
+        queue.put(out)
+        process = multiprocessing.Process(target=proofOfWork, args=(queue,blockchain, request.get_json()['payload']))
+        process.start()
+        process.join()
+        process.terminate()
+        process.join()
+        copy=queue.get()
+        print("Nonce acquired: " + str(copy['nonce']))
+        print("Hash: " + str(copy['hash']))
+        validateToAll(request, storage, copy['nonce'], copy['hash'])
         return jsonify({'verifiedSignature': True}), 200
     
     return jsonify({'verifiedSignature': False}), 200
@@ -151,21 +171,34 @@ def validateNounce():
     """
 
     receivalFailureProbability = randrange(0, 100)
-    print("\nMine connection failure P: " + str(receivalFailureProbability))
-    if signatureVerification(request, storage.getStorage()) and (90 > receivalFailureProbability):
+    if(90<receivalFailureProbability):
+        raise Exception("\nMine connection failure P: " + str(receivalFailureProbability))
+    if signatureVerification(request, storage.getStorage()):
     # if signatureVerification(request, storage.getStorage()):
         # sendMineCommandToAll(request, storage)
+        
         print("Connection successful")
         validatedHash = request.get_json()['hashToValiate']
         nonce = request.get_json()['nonce']
         print("Received validation command from " + formatSenderAddress(request))
         print("Hash to validate: " + validatedHash)
+        prev_hash=blockchain.getPreviousBlock()['previousHash']
+        prev_timestamp=blockchain.getPreviousBlock()['timestamp']
+        
         if(validation(nonce, validatedHash, blockchain)):
             print("Hash is correct")
-            blockchain.print()
-            blockchain.createBlock(validatedHash, nonce)
-            blockchain.print()
-            executor.shutdown()
+            if (request.get_json()['timeStamp']-prev_timestamp<10.0):
+                print('Fork attempt!')
+                print('---'+prev_hash)
+                print('|')
+                print('---'+validatedHash)
+                print('Pushing to orphan!')
+                orphanBlockList.push(validatedHash)
+                orphanBlockList.print()
+            else: 
+                blockchain.print()
+                blockchain.createBlock(validatedHash, nonce)
+                blockchain.print()
         else:
             print("Orphan block detected, pushing into orphan blocks!")
             orphanBlockList.push(validatedHash)

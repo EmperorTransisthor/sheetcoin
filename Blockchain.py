@@ -76,6 +76,7 @@ class Blockchain:
         self.allTransactions.append(currentTransaction)
         print("current transactions: " + str(self.currentTransactions))
         print("all transactions: " + str(self.allTransactions))
+        print("Transaction unspent: " + str(self.currentTransactions[len(self.currentTransactions)-1]))
         return self.getPreviousBlock()['index'] + 1
        
     # This function is created
