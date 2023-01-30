@@ -97,7 +97,10 @@ def mine():
     """ Checks sender signature, prints message if signature is valid and spreads out message to other nodes in network.
     """
 
-    if signatureVerification(request, storage.getStorage()):
+    receivalFailureProbability = randrange(0, 100)
+    print("\nTransaction failure P: " + str(receivalFailureProbability))
+    if signatureVerification(request, storage.getStorage()) and (90 > receivalFailureProbability):
+        print("Received transaction")
         sendMineCommandToAll(request, storage)
         transactionId = request.get_json()['id']
         sender = request.get_json()['sender']
@@ -148,10 +151,11 @@ def validateNounce():
     """
 
     receivalFailureProbability = randrange(0, 100)
-    print("\nFailue: " + str(receivalFailureProbability))
-    if signatureVerification(request, storage.getStorage()) and (90 < receivalFailureProbability):
+    print("\nMine connection failure P: " + str(receivalFailureProbability))
+    if signatureVerification(request, storage.getStorage()) and (90 > receivalFailureProbability):
     # if signatureVerification(request, storage.getStorage()):
         # sendMineCommandToAll(request, storage)
+        print("Connection successful")
         validatedHash = request.get_json()['hashToValiate']
         nonce = request.get_json()['nonce']
         print("Received validation command from " + formatSenderAddress(request))

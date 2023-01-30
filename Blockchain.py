@@ -1,7 +1,6 @@
 import hashlib
 import json
 import time
-from random import randrange
 
 INITIAL_HASH = "0" * 64
 
@@ -45,10 +44,7 @@ class Blockchain:
         Returns:
             `block` -> `dict`: current block structure
         """
-        randomnb=randrange(100)
-        
-        if (90 < randomnb):
-            raise Exception("\nRejected because of probability...")
+
         if self.isTransactionIdDuplicate(transactionId):
             raise Exception ("Duplicate transaction")
 
@@ -80,7 +76,6 @@ class Blockchain:
         self.allTransactions.append(currentTransaction)
         print("current transactions: " + str(self.currentTransactions))
         print("all transactions: " + str(self.allTransactions))
-        print("Transaction unspent: " + str(self.currentTransactions[len(self.currentTransactions)-1]))
         return self.getPreviousBlock()['index'] + 1
        
     # This function is created
