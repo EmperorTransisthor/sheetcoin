@@ -15,7 +15,7 @@ message = b"Hello World"
 HELLOWORLD = "Hello World"
 app = Flask(__name__)
 
-evilnode=False
+evilnode=True
 privateKey = ecdsa.SigningKey.generate(curve=ecdsa.SECP256k1, hashfunc=sha3_512)    # private key
 publicKey = privateKey.get_verifying_key()                                          # public key
 signature = privateKey.sign(message)
@@ -97,12 +97,13 @@ def mine():
     """ Checks sender signature, prints message if signature is valid and spreads out message to other nodes in network.
     """
 
-    receivalFailureProbability = randrange(0, 100)
-    if (90 < receivalFailureProbability):
-        raise Exception("\nTransaction failure P: " + str(receivalFailureProbability))
+    
     if signatureVerification(request, storage.getStorage()):
         print("Received transaction")
         sendMineCommandToAll(request, storage)
+        receivalFailureProbability = randrange(0, 100)
+        if (90 < receivalFailureProbability):
+            raise Exception("\nTransaction failure P: " + str(receivalFailureProbability))
         transactionId = request.get_json()['id']
         sender = request.get_json()['sender']
         recipient = request.get_json()['receiver']
@@ -148,6 +149,9 @@ def receive_mine():
 
     if signatureVerification(request, storage.getStorage()):
         print("Received mining command from " + formatSenderAddress(request))
+        receivalFailureProbability = randrange(0, 100)
+        if (90 < receivalFailureProbability):
+            raise Exception("\nTransaction failure P: " + str(receivalFailureProbability))
         global process
         out = {'hash': '', 'nonce':0}
         queue = multiprocessing.Queue()
@@ -182,23 +186,13 @@ def validateNounce():
         nonce = request.get_json()['nonce']
         print("Received validation command from " + formatSenderAddress(request))
         print("Hash to validate: " + validatedHash)
-        prev_hash=blockchain.getPreviousBlock()['previousHash']
-        prev_timestamp=blockchain.getPreviousBlock()['timestamp']
-        
-        if(validation(nonce, validatedHash, blockchain)):
+        currtimestamp=request.get_json()['timeStamp']
+        print('HEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE')
+        if(validation(nonce, validatedHash, blockchain,currtimestamp)):
             print("Hash is correct")
-            if (request.get_json()['timeStamp']-prev_timestamp<10.0):
-                print('Fork attempt!')
-                print('---'+prev_hash)
-                print('|')
-                print('---'+validatedHash)
-                print('Pushing to orphan!')
-                orphanBlockList.push(validatedHash)
-                orphanBlockList.print()
-            else: 
-                blockchain.print()
-                blockchain.createBlock(validatedHash, nonce)
-                blockchain.print()
+            blockchain.print()
+            blockchain.createBlock(validatedHash, nonce)
+            blockchain.print()
         else:
             print("Orphan block detected, pushing into orphan blocks!")
             orphanBlockList.push(validatedHash)

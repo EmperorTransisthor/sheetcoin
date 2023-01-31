@@ -165,14 +165,26 @@ def findHashNonce(listOfTransactions, previousHash, index):
     print(f'Failed after {nonce} tries')
     return -1
 
-def validation(nonce, hashToValidate, blockchain):
+def isFork(validatedHash, blockchain,currTimestamp):
+    prev_hash=blockchain.getPreviousBlock()['previousHash']
+    prev_timestamp=blockchain.getPreviousBlock()['timestamp']
+    if (currTimestamp-prev_timestamp<10.0):
+                print('Fork attempt!')
+                print('---'+prev_hash)
+                print('|')
+                print('---'+validatedHash)
+                print('Pushing to orphan!')
+                return True
+    return False
+
+def validation(nonce, hashToValidate, blockchain,currTimestamp):
     previous_block = blockchain.getPreviousBlock()
     print("previous hash: " + str(blockchain.getPreviousBlock()['previousHash']))
     print("hash to validate: " + str(hashToValidate))
     print("len first: " + str(len(previous_block['previousHash'])))
     print("len second: "+ str(len(hashToValidate)))
     #FIXME(EmperorTransisthor): ?
-    if len(previous_block['previousHash']) != len(hashToValidate):
+    if len(previous_block['previousHash']) != len(hashToValidate) or isFork(hashToValidate, blockchain,currTimestamp):
         return False
 
     return True
